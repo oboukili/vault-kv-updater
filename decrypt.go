@@ -9,8 +9,11 @@ import (
 	"reflect"
 )
 
-// Asserts whether the input (stdin or file) is a sops encrypted stream, returns
-func isSopsEncrypted(i interface{}) (ok bool, err error, input []byte) {
+// Asserts whether the input (stdin or file) is a sops encrypted stream, also returns a pointer to the read data
+func isSopsEncrypted(i interface{}) (ok bool, err error, p *[]byte) {
+
+	var input []byte
+	p = &input
 
 	switch i.(type) {
 	case string:
@@ -39,19 +42,17 @@ func isSopsEncrypted(i interface{}) (ok bool, err error, input []byte) {
 	return
 }
 
-func decrypt(input interface{}, format string) (contents []byte, err error) {
-	switch input.(type) {
-	case []byte:
-		if contents, err = sops.Data(input.([]byte), format); err != nil {
+func decrypt(data interface{}, format string) (p *[]byte, err error) {
+	var contents []byte
+	p = &contents
+
+	switch data.(type) {
+	case *[]byte:
+		if contents, err = sops.Data(*data.(*[]byte), format); err != nil {
 			return nil, fmt.Errorf("decrypt: cannot sops decrypt data: %s", err)
 		}
 		return
-	case string:
-		if contents, err = sops.File(input.(string), format); err != nil {
-			return nil, fmt.Errorf("decrypt: cannot sops decrypt file: %s", err)
-		}
-		return
 	default:
-		return nil, fmt.Errorf("decrypt: unsupported input type: %s", reflect.TypeOf(input))
+		return nil, fmt.Errorf("decrypt: unsupported input type: %s", reflect.TypeOf(data))
 	}
 }

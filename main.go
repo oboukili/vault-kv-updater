@@ -24,7 +24,7 @@ func routine(i interface{}) (err error) {
 	}
 	// unmarshal yaml, because we know we are working with yaml
 	var contents interface{}
-	if err := yaml.Unmarshal(input, &contents); err != nil {
+	if err := yaml.Unmarshal(*input, &contents); err != nil {
 		return err
 	}
 
