@@ -3,15 +3,17 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"github.com/go-yaml/yaml"
+	vault "github.com/hashicorp/vault/api"
 	"github.com/jeremywohl/flatten"
 	"log"
 	"os"
 )
 
-func routine(i interface{}) (err error) {
+const VaultDevToken = "e3bfa688-971d-4af2-a9b5-4db72446af74"
+
+func routine(i interface{}, kvPath string, c *vault.Client) (err error) {
 	ok, err, input := isSopsEncrypted(i)
 	if err != nil {
 		return
@@ -39,32 +41,43 @@ func routine(i interface{}) (err error) {
 		return
 	}
 
-	unescapedContent, err := unescapeUnicodeCharactersInJSON(json.RawMessage(content))
+	// TODO: introduce a boolean for unicode characters json escaping opt-out
+	unescapedContent, err := unescapeUnicodeCharactersInJSON(content)
 	if err != nil {
 		return
 	}
 
-	if flattened, err := flatten.FlattenString(string(unescapedContent), "", flatten.DotStyle); err != nil {
+	// TODO: introduce a boolean for flattening opt-in
+	flattened, err := flatten.FlattenString(string(unescapedContent), "", flatten.DotStyle)
+	if err != nil {
 		return err
 	} else {
-		fmt.Println(flattened)
+		err = vaultKVIdempotentWrite(flattened, kvPath, c)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 	return
 }
 
 func main() {
-	flag.Parse()
+	kvPath, ok := os.LookupEnv("VAULT_KV_PATH")
+	if !ok {
+		log.Fatalln("VAULT_KV_PATH must be specified")
+	}
 
+	c := vaultClientInit()
+	// Run main routines
 	if len(os.Args) > 1 {
 		for _, f := range os.Args[1:] {
 			// TODO: use a goroutine + channels for major speedups
-			err := routine(f)
+			err := routine(f, kvPath, c)
 			if err != nil {
 				log.Fatalln(fmt.Errorf("main: %s", err))
 			}
 		}
 	} else if stdinStat, _ := os.Stdin.Stat(); (stdinStat.Mode() & os.ModeCharDevice) == 0 {
-		if err := routine(os.Stdin); err != nil {
+		if err := routine(os.Stdin, kvPath, c); err != nil {
 			log.Fatalln(err)
 		}
 	} else {

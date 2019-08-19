@@ -22,7 +22,7 @@ func decode(input interface{}) (interface{}, error) {
 			case string:
 				rec[k.(string)], err = decode(v)
 			default:
-				return nil, fmt.Errorf("decode: unsupported yaml key type: %s", reflect.TypeOf(k))
+				return nil, fmt.Errorf("decode: unsupported key type: %s", reflect.TypeOf(k))
 			}
 		}
 		return rec, err
