@@ -6,6 +6,8 @@ stages:
 build:
   stage: build
   image: golang:1.12-alpine
+  variables:
+    GOPATH: /go
   before_script:
     - apk --no-cache --update add git
     - >
