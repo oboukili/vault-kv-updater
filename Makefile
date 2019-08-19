@@ -8,6 +8,3 @@ deps:
 
 build:
 	CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o vault-kv-updater
-
-ci-build:
-	CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /go/vault-kv-updater
