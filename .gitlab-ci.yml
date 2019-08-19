@@ -12,15 +12,18 @@ build:
     - apk --no-cache --update add git make
     - make deps
   script:
-    - make build
+    - make ci-build
   artifacts:
     paths:
-      - vault-kv-updater
+      - /go/vault-kv-updater
     expire_in: 1 day
   cache:
     key: "${CI_JOB_STAGE}"
     paths:
-      - /go/**/*
+      - /go/src/github.com
+      - /go/src/golang.org
+      - /go/src/google.golang.org
+      - /go/src/gopkg.in
   tags:
     - kubernetes
 
