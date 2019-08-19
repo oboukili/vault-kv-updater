@@ -34,10 +34,6 @@ func vaultClientInit() (c *vault.Client) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if token == "" {
-		log.Print("Using Vault dev token")
-		token = VaultDevToken
-	}
 	c.SetToken(token)
 
 	return

@@ -11,8 +11,6 @@ import (
 	"os"
 )
 
-const VaultDevToken = "e3bfa688-971d-4af2-a9b5-4db72446af74"
-
 func routine(i interface{}, kvPath string, c *vault.Client) (err error) {
 	ok, err, input := isSopsEncrypted(i)
 	if err != nil {
