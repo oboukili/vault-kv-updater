@@ -9,23 +9,18 @@ build:
   variables:
     GOPATH: /go
   before_script:
-    - apk --no-cache --update add git
-    - >
-      go get \
-        github.com/go-yaml/yaml \
-        github.com/jeremywohl/flatten \
-        go.mozilla.org/sops/decrypt \
-        github.com/hashicorp/vault/api \
-        golang.org/x/net/http2
+    - apk --no-cache --update add git make
+    - make deps
   script:
-     - CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o vault-kv-updater
+    - make build
   artifacts:
     paths:
       - vault-kv-updater
     expire_in: 1 day
   cache:
+    key: "${CI_JOB_STAGE}"
     paths:
-      - /go/
+      - /go/**/*
   tags:
     - kubernetes
 
@@ -48,7 +43,5 @@ release:
       - .gitignore
       - LICENSE
       - README.md
-    refs:
-      - web
   tags:
     - kubernetes
