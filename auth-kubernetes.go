@@ -1,4 +1,3 @@
-// Copyright Seth Vargo 2019
 // sourced from https://github.com/sethvargo/vault-kubernetes-authenticator
 // Thanks Seth! :)
 
@@ -35,7 +34,12 @@ var (
 func authKubernetes() (token string, accessor string, err error) {
 	vaultAddr = os.Getenv("VAULT_ADDR")
 	if vaultAddr == "" {
-		vaultAddr = "https://127.0.0.1:8200"
+		vaultAddr = "http://127.0.0.1:8200"
+	}
+
+	role := os.Getenv("VAULT_ROLE")
+	if role == "" {
+		log.Fatal("missing VAULT_ROLE")
 	}
 
 	vaultCaPem = os.Getenv("VAULT_CAPEM")
@@ -55,11 +59,6 @@ func authKubernetes() (token string, accessor string, err error) {
 	vaultK8SMountPath = os.Getenv("VAULT_K8S_MOUNT_PATH")
 	if vaultK8SMountPath == "" {
 		vaultK8SMountPath = "kubernetes"
-	}
-
-	role := os.Getenv("VAULT_ROLE")
-	if role == "" {
-		log.Fatal("missing VAULT_ROLE")
 	}
 
 	saPath := os.Getenv("SERVICE_ACCOUNT_PATH")
