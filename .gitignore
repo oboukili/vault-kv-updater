@@ -2,3 +2,4 @@
 foo.yml
 *.enc.yml
 go_build*
+vault-kv-updater
