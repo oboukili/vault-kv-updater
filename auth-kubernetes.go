@@ -10,6 +10,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/net/http2"
 	"io"
 	"io/ioutil"
 	"log"
@@ -18,9 +19,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
-	"golang.org/x/net/http2"
 )
 
 var (
@@ -87,7 +85,7 @@ func authKubernetes() (token string, accessor string, err error) {
 func readJwtToken(path string) (string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to read jwt token")
+		return "", fmt.Errorf("failed to read jwt token: %s", err)
 	}
 
 	return string(bytes.TrimSpace(data)), nil
@@ -118,7 +116,7 @@ func authenticate(role, jwt string) (string, string, error) {
 	}
 
 	if err := http2.ConfigureTransport(transport); err != nil {
-		return "", "", errors.New("failed to configure http2")
+		return "", "", fmt.Errorf("failed to configure http2")
 	}
 
 	client := &http.Client{
@@ -133,7 +131,7 @@ func authenticate(role, jwt string) (string, string, error) {
 	req, err := http.NewRequest(http.MethodPost, addr, strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
-		return "", "", errors.Wrap(err, "failed to create request")
+		return "", "", fmt.Errorf("failed to create request: %s", err)
 	}
 	if vaultNamespace != "" {
 		req.Header.Set("X-Vault-Namespace", vaultNamespace)
@@ -141,7 +139,7 @@ func authenticate(role, jwt string) (string, string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", "", errors.Wrap(err, "failed to login")
+		return "", "", fmt.Errorf("failed to login %s", err)
 	}
 	defer resp.Body.Close()
 
@@ -162,7 +160,7 @@ func authenticate(role, jwt string) (string, string, error) {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&s); err != nil {
-		return "", "", errors.Wrap(err, "failed to read body")
+		return "", "", fmt.Errorf("failed to read body: %s", err)
 	}
 
 	return s.Auth.ClientToken, s.Auth.ClientAccessor, nil
@@ -193,7 +191,7 @@ func rootCAs() (*x509.CertPool, error) {
 	default:
 		pool, err := x509.SystemCertPool()
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to load system certs")
+			return nil, fmt.Errorf("failed to load system certs %s", err)
 		}
 		return pool, err
 	}
@@ -211,11 +209,11 @@ func loadCert(pool *x509.CertPool, pem []byte) error {
 func loadCertFile(pool *x509.CertPool, p string) error {
 	pem, err := ioutil.ReadFile(p)
 	if err != nil {
-		return errors.Wrap(err, "failed to read CA file from disk")
+		return fmt.Errorf("failed to read CA file from disk %s", err)
 	}
 
 	if err := loadCert(pool, pem); err != nil {
-		return errors.Wrapf(err, "failed to load CA at %s", p)
+		return fmt.Errorf("failed to load CA at %s: %s", p, err)
 	}
 
 	return nil
@@ -235,7 +233,7 @@ func loadCertFolder(pool *x509.CertPool, p string) error {
 
 		return loadCertFile(pool, path)
 	}); err != nil {
-		return errors.Wrapf(err, "failed to load CAs at %s", p)
+		return fmt.Errorf("failed to load CAs at %s: %s", p, err)
 	}
 	return nil
 }

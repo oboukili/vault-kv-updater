@@ -7,7 +7,7 @@ build:
   stage: build
   image: golang:1.12-alpine
   before_script:
-    - apk --no-cache add git
+    - apk --no-cache --update add git
     - >
       go get \
         github.com/go-yaml/yaml \
@@ -35,9 +35,10 @@ release:
         --cache true \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}
+  dependencies:
+    - build
   except:
     changes:
-      - .gitlab-ci.yml
       - .gitignore
       - LICENSE
       - README.md
