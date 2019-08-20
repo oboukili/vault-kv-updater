@@ -9,9 +9,10 @@ import (
 	"github.com/jeremywohl/flatten"
 	"log"
 	"os"
+	"strconv"
 )
 
-func routine(i interface{}, kvPath string, c *vault.Client) (err error) {
+func Routine(i interface{}, kvPath string, c *vault.Client) (err error) {
 	ok, err, input := isSopsEncrypted(i)
 	if err != nil {
 		return
@@ -50,7 +51,7 @@ func routine(i interface{}, kvPath string, c *vault.Client) (err error) {
 	if err != nil {
 		return err
 	} else {
-		err = vaultKVIdempotentWrite(flattened, kvPath, c)
+		err = VaultKVIdempotentWrite(flattened, kvPath, c)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -59,23 +60,64 @@ func routine(i interface{}, kvPath string, c *vault.Client) (err error) {
 }
 
 func main() {
-	kvPath, ok := os.LookupEnv("VAULT_KV_PATH")
-	if !ok {
-		log.Fatalln("VAULT_KV_PATH must be specified")
+	var kvPath string
+	var autoComplete bool
+	var filePaths []ExtendedFileInfo
+
+	ac, ok := os.LookupEnv("AUTO_COMPLETE")
+	switch ok {
+	case true:
+		autoComplete, err := strconv.ParseBool(ac)
+		if err != nil {
+			log.Fatalln(fmt.Errorf("AUTO_COMPLETE environment variable must be boolean compatible: %s", ac))
+		}
+		if autoComplete {
+			if err = AutoCompleteInit(&filePaths); err != nil {
+				log.Fatalln(err)
+			}
+		}
+	case false:
+		if len(os.Args) > 2 {
+			log.Fatalln("only one YAML document may be specified at a time when not using autocomplete mode")
+		}
+
+		kvPath, ok = os.LookupEnv("VAULT_KV_PATH")
+		if !ok {
+			log.Fatalln("VAULT_KV_PATH must be specified")
+		}
 	}
 
-	c := vaultClientInit()
+	// Vault client initialization
+	c, err := VaultClientInit()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	// Run main routines
 	if len(os.Args) > 1 {
-		for _, f := range os.Args[1:] {
-			// TODO: use a goroutine + channels for major speedups
-			err := routine(f, kvPath, c)
-			if err != nil {
-				log.Fatalln(fmt.Errorf("main: %s", err))
+		for _, file := range os.Args[1] {
+			switch autoComplete {
+			case false:
+				err := Routine(file, kvPath, c)
+				if err != nil {
+					log.Fatalln(err)
+				}
+			case true:
+				r, err := AutoCompleteGetFiles(&filePaths)
+				if err != nil {
+					log.Fatalln(err)
+				}
+				for _, f := range *r {
+					// TODO: use goroutines + channels for major speedups
+					err := Routine(f.FilePath, f.VaultKVPath, c)
+					if err != nil {
+						log.Fatalln(err)
+					}
+				}
 			}
 		}
 	} else if stdinStat, _ := os.Stdin.Stat(); (stdinStat.Mode() & os.ModeCharDevice) == 0 {
-		if err := routine(os.Stdin, kvPath, c); err != nil {
+		if err := Routine(os.Stdin, kvPath, c); err != nil {
 			log.Fatalln(err)
 		}
 	} else {

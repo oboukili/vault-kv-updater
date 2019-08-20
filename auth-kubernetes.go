@@ -31,7 +31,7 @@ var (
 	vaultK8SMountPath string
 )
 
-func authKubernetes() (token string, accessor string, err error) {
+func AuthKubernetes() (token string, accessor string, err error) {
 	vaultAddr = os.Getenv("VAULT_ADDR")
 	if vaultAddr == "" {
 		vaultAddr = "http://127.0.0.1:8200"
@@ -67,7 +67,7 @@ func authKubernetes() (token string, accessor string, err error) {
 	}
 
 	// Read the JWT token from disk
-	jwt, err := readJwtToken(saPath)
+	jwt, err := ReadJwtToken(saPath)
 	if err != nil {
 		err = fmt.Errorf("could not read Kubernetes SA JWT token from disk: %s", err)
 		return
@@ -81,7 +81,7 @@ func authKubernetes() (token string, accessor string, err error) {
 	return
 }
 
-func readJwtToken(path string) (string, error) {
+func ReadJwtToken(path string) (string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("failed to read jwt token: %s", err)

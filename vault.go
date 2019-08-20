@@ -11,7 +11,7 @@ import (
 
 const vaultDefaultAddr = "http://127.0.0.1:8200"
 
-func vaultClientInit() (c *vault.Client) {
+func VaultClientInit() (c *vault.Client, err error) {
 	var token string
 	var vaultAddress string
 
@@ -21,25 +21,24 @@ func vaultClientInit() (c *vault.Client) {
 		vaultAddress = vaultDefaultAddr
 	}
 
-	c, err := vault.NewClient(&vault.Config{
+	c, err = vault.NewClient(&vault.Config{
 		Address: vaultAddress,
 	})
 	if err != nil {
-		log.Fatalln(err)
+		return
 	}
 
 	// TODO: implement a proper authentication method cli choice
 	// Use Kubernetes Vault authentication
-	token, _, err = authKubernetes()
+	token, _, err = AuthKubernetes()
 	if err != nil {
-		log.Fatalln(err)
+		return
 	}
 	c.SetToken(token)
-
 	return
 }
 
-func vaultKVIdempotentWrite(secret interface{}, path string, c *vault.Client) (err error) {
+func VaultKVIdempotentWrite(secret interface{}, path string, c *vault.Client) (err error) {
 	var inputSecret map[string]interface{}
 	vaultSecret, err := c.Logical().Read(path)
 	if err != nil {
