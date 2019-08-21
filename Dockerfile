@@ -8,6 +8,7 @@ RUN adduser -D -g '' app
 
 # As long as this repo is private, GITLAB_CREDS should be of the USERNAME:ACCESS_TOKEN form
 ARG GITLAB_CREDS
+RUN git config --global credential.helper store
 RUN echo "https://${GITLAB_CREDS}@gitlab.com" >> ~/.git-credentials && \
     go get -v -d && \
     shred -u ~/.git-credentials
