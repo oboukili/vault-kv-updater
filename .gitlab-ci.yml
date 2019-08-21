@@ -10,7 +10,7 @@ build:
   script:
     - >
       /kaniko/executor \
-        --build-arg GITLAB_CREDS="gitlab-ci-token:${CI_DEPLOY_TOKEN}"
+        --build-arg GITLAB_CREDS="gitlab-ci-token:${CI_DEPLOY_TOKEN}" \
         --single-snapshot \
         --context ${CI_PROJECT_DIR} \
         --cache true \
