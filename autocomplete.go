@@ -2,24 +2,26 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-const EnvAutoCompleteFilePrefix = "AUTO_COMPLETE_FILE_PREFIX"
-const EnvAutoCompleteVaultKVMount = "AUTO_COMPLETE_VAULT_KV_MOUNT"
-const EnvAutoCompleteVaultKVPathPrefix = "AUTO_COMPLETE_VAULT_KV_PATH_PREFIX"
+const (
+	EnvAutoCompleteFilePrefix        = "AUTO_COMPLETE_FILE_PREFIX"
+	EnvAutoCompleteVaultKVMount      = "AUTO_COMPLETE_VAULT_KV_MOUNT"
+	EnvAutoCompleteVaultKVPathPrefix = "AUTO_COMPLETE_VAULT_KV_PATH_PREFIX"
+)
 
 var validFileExtensions = [...]string{".yml", ".yaml"}
 
 type ExtendedFileInfo struct {
 	os.FileInfo
-	FilePath    string
-	VaultKVPath string
+	FilePath string
 }
 
-func (e *ExtendedFileInfo) CompleteVaultKVPath() {
+func (e *ExtendedFileInfo) VaultKVPath() string {
 	var r string
 
 	filePrefix, ok := os.LookupEnv(EnvAutoCompleteFilePrefix)
@@ -43,22 +45,38 @@ func (e *ExtendedFileInfo) CompleteVaultKVPath() {
 		}
 	}
 	b.WriteString(r)
-	(*e).VaultKVPath = b.String()
+	return b.String()
 }
 
-func AutoCompleteGetFiles(folders *[]ExtendedFileInfo) (results *[]ExtendedFileInfo, err error) {
-	if folders == nil || len(*folders) == 0 {
+func AutoCompleteGetFiles(directories []string) (results *[]ExtendedFileInfo, err error) {
+
+	if directories == nil || len(directories) == 0 {
 		err = fmt.Errorf("at least one folder has to be specified as an argument")
 		return
 	}
-	for _, f := range *folders {
-		if !f.IsDir() {
-			err = fmt.Errorf("%s should be a directory when using autocomplete mode", f.Name())
-			return
+
+	*(results) = make([]ExtendedFileInfo, len(directories)-1)
+
+	for _, d := range directories {
+		di, err := os.Stat(d)
+		//f.FilePath = d
+		if err != nil {
+			if os.IsNotExist(err) {
+				log.Printf("WARN: path does not exist: %s, ignoring...", d)
+				continue
+			}
+			return nil, fmt.Errorf("%s: %s", d, err)
 		}
-		err = filepath.Walk(f.FilePath, func(path string, info os.FileInfo, err error) (walkFnErr error) {
+		if !di.IsDir() {
+			err = fmt.Errorf("%s should be a directory when using autocomplete mode", di.Name())
+			return nil, err
+		}
+		err = filepath.Walk(d, func(path string, info os.FileInfo, err error) (walkFnErr error) {
 			for _, s := range validFileExtensions {
-				if strings.HasSuffix(info.Name(), s) && !info.IsDir() {
+				if info.IsDir() {
+					return filepath.SkipDir
+				}
+				if strings.HasSuffix(info.Name(), s) {
 					*results = append(*results, ExtendedFileInfo{
 						FileInfo: info,
 						FilePath: path,
@@ -69,38 +87,21 @@ func AutoCompleteGetFiles(folders *[]ExtendedFileInfo) (results *[]ExtendedFileI
 			return
 		})
 		if err != nil {
-			return
-		}
-		for _, r := range *results {
-			r.CompleteVaultKVPath()
+			return nil, err
 		}
 	}
 	return
 }
 
-func AutoCompleteInit(p *[]ExtendedFileInfo) (err error) {
+func AutoCompleteInit() (err error) {
 
 	if len(os.Args) < 2 {
 		err = fmt.Errorf("at least one folder should be specified as argument when using autocomplete mode")
 		return
 	}
-
-	*p = make([]ExtendedFileInfo, len(os.Args)-1)
-
 	kvMount, ok := os.LookupEnv(EnvAutoCompleteVaultKVMount)
 	if !ok || strings.EqualFold(kvMount, "") {
 		err = fmt.Errorf("%s should be set as a non-empty string environment variable", EnvAutoCompleteVaultKVMount)
-	}
-	for i, path := range os.Args[:1] {
-		f, err := os.Stat(path)
-		if err != nil {
-			err = fmt.Errorf("%s: %s", path, err)
-			return err
-		}
-		(*p)[i] = ExtendedFileInfo{
-			FileInfo: f,
-			FilePath: path,
-		}
 	}
 	return
 }

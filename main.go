@@ -62,7 +62,6 @@ func Routine(i interface{}, kvPath string, c *vault.Client) (err error) {
 func main() {
 	var kvPath string
 	var autoComplete bool
-	var filePaths []ExtendedFileInfo
 
 	ac, ok := os.LookupEnv("AUTO_COMPLETE")
 	switch ok {
@@ -72,7 +71,7 @@ func main() {
 			log.Fatalln(fmt.Errorf("AUTO_COMPLETE environment variable must be boolean compatible: %s", ac))
 		}
 		if autoComplete {
-			if err = AutoCompleteInit(&filePaths); err != nil {
+			if err := AutoCompleteInit(); err != nil {
 				log.Fatalln(err)
 			}
 		}
@@ -95,24 +94,24 @@ func main() {
 
 	// Run main routines
 	if len(os.Args) > 1 {
-		for _, file := range os.Args[1] {
-			switch autoComplete {
-			case false:
+		switch autoComplete {
+		case false:
+			for _, file := range os.Args[1] {
 				err := Routine(file, kvPath, c)
 				if err != nil {
 					log.Fatalln(err)
 				}
-			case true:
-				r, err := AutoCompleteGetFiles(&filePaths)
+			}
+		case true:
+			r, err := AutoCompleteGetFiles(os.Args[:1])
+			if err != nil {
+				log.Fatalln(err)
+			}
+			for _, f := range *r {
+				// TODO: use goroutines + channels for major speedups
+				err := Routine(f.FilePath, f.VaultKVPath(), c)
 				if err != nil {
 					log.Fatalln(err)
-				}
-				for _, f := range *r {
-					// TODO: use goroutines + channels for major speedups
-					err := Routine(f.FilePath, f.VaultKVPath, c)
-					if err != nil {
-						log.Fatalln(err)
-					}
 				}
 			}
 		}
