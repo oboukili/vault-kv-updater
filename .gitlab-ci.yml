@@ -13,9 +13,6 @@ build:
         --verbosity error \
         --build-arg GITLAB_CREDS="gitlab-ci-token:${CI_JOB_TOKEN}" \
         --context ${CI_PROJECT_DIR} \
-        --cache true \
-        --cache-ttl 72h \
-        --cache-repo eu.gcr.io/malt-build/${CI_PROJECT_NAME} \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}
   tags:
