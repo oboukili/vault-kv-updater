@@ -5,27 +5,6 @@ stages:
 
 build:
   stage: build
-  image: golang:1.12-alpine
-  variables:
-    GOPATH: /go
-  before_script:
-    - apk --no-cache --update add git make
-    - make deps
-  script:
-    - make build
-  artifacts:
-    paths:
-      - vault-kv-updater
-    expire_in: 1 day
-  cache:
-    key: "${CI_JOB_STAGE}"
-    paths:
-      - /go/src/
-  tags:
-    - kubernetes
-
-release:
-  stage: release
   image:
     name: gcr.io/kaniko-project/executor:debug-v0.10.0
     entrypoint: [""]
@@ -36,12 +15,19 @@ release:
         --cache true \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}
-  dependencies:
-    - build
-  except:
-    changes:
-      - .gitignore
-      - LICENSE
-      - README.md
+#        --destination ${CI_REGISTRY_URL}:${CI_COMMIT_SHORT_SHA} \
+#        --destination ${CI_REGISTRY_URL}:${CI_COMMIT_REF_SLUG}
   tags:
     - kubernetes
+
+#release:
+#  image: docker:19
+#  script:
+#    - docker create ${CI_REGISTRY_URL}:${CI_COMMIT_SHORT_SHA}
+#    -
+#  artifacts:
+#    paths:
+#      - vault-kv-updater
+#    expire_in: 1 day
+#  tags:
+#    - kubernetes
