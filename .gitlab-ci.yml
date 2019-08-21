@@ -1,12 +1,14 @@
 ---
-stages:
-  - build
-
-build:
-  stage: build
+default:
   image:
     name: gcr.io/kaniko-project/executor:debug-v0.10.0
     entrypoint: [""]
+
+stages:
+  - build
+
+build-release:
+  stage: build
   script:
     - >
       /kaniko/executor \
@@ -15,5 +17,23 @@ build:
         --context ${CI_PROJECT_DIR} \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}
+  only:
+    refs:
+      - master
+  tags:
+    - kubernetes
+
+build-only:
+  stage: build
+  script:
+    - >
+      /kaniko/executor \
+        --verbosity error \
+        --build-arg GITLAB_CREDS="gitlab-ci-token:${CI_JOB_TOKEN}" \
+        --context ${CI_PROJECT_DIR} \
+        --no-push
+  except:
+    refs:
+      - master
   tags:
     - kubernetes
