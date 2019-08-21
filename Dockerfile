@@ -1,6 +1,7 @@
 FROM golang:1.12-alpine as builder
 ENV GOPATH=/go
 
+COPY . .
 RUN apk --no-cache --update add git make
 RUN make deps
 RUN make build

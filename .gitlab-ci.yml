@@ -13,15 +13,14 @@ build:
       /kaniko/executor \
         --single-snapshot \
         --cache true \
+        --cache-ttl 72h \
+        --context ${CI_PROJECT_DIR} \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}
-#        --destination ${CI_REGISTRY_URL}:${CI_COMMIT_SHORT_SHA} \
-#        --destination ${CI_REGISTRY_URL}:${CI_COMMIT_REF_SLUG}
   tags:
     - kubernetes
 
-#release:
-#  image: docker:19
+# release:
 #  script:
 #    - docker create ${CI_REGISTRY_URL}:${CI_COMMIT_SHORT_SHA}
 #    -
