@@ -1,5 +1,6 @@
 deps:
 	go get \
+	  gitlab.com/maltcommunity/ops/vault-kv-updater.git/api \
 	  github.com/go-yaml/yaml \
 	  github.com/jeremywohl/flatten \
 	  go.mozilla.org/sops/decrypt \
