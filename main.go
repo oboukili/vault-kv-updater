@@ -21,7 +21,7 @@ func main() {
 			log.Fatalln(fmt.Errorf("AUTO_COMPLETE environment variable must be boolean compatible: %s", ac))
 		}
 		if autoComplete {
-			if err := AutoCompleteInit(); err != nil {
+			if err := api.AutoCompleteInit(); err != nil {
 				log.Fatalln(err)
 			}
 		}
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// Vault client initialization
-	c, err := VaultClientInit()
+	c, err := api.VaultClientInit()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -47,26 +47,26 @@ func main() {
 		switch autoComplete {
 		case false:
 			for _, file := range os.Args[1] {
-				err := Routine(file, kvPath, c)
+				err := api.Routine(file, kvPath, c)
 				if err != nil {
 					log.Fatalln(err)
 				}
 			}
 		case true:
-			r, err := AutoCompleteGetFiles(os.Args[:1])
+			r, err := api.AutoCompleteGetFiles(os.Args[:1])
 			if err != nil {
 				log.Fatalln(err)
 			}
 			for _, f := range *r {
 				// TODO: use goroutines + channels for major speedups
-				err := Routine(f.FilePath, f.VaultKVPath(), c)
+				err := api.Routine(f.FilePath, f.VaultKVPath(), c)
 				if err != nil {
 					log.Fatalln(err)
 				}
 			}
 		}
 	} else if stdinStat, _ := os.Stdin.Stat(); (stdinStat.Mode() & os.ModeCharDevice) == 0 {
-		if err := Routine(os.Stdin, kvPath, c); err != nil {
+		if err := api.Routine(os.Stdin, kvPath, c); err != nil {
 			log.Fatalln(err)
 		}
 	} else {
