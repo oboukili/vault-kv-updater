@@ -12,9 +12,10 @@ build:
     - >
       /kaniko/executor \
         --single-snapshot \
+        --context ${CI_PROJECT_DIR} \
         --cache true \
         --cache-ttl 72h \
-        --context ${CI_PROJECT_DIR} \
+        --cache-repo eu.gcr.io/malt-build/${CI_PROJECT_NAME} \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} \
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}
   tags:

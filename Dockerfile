@@ -3,6 +3,8 @@ ENV GOPATH=/go
 
 COPY . .
 RUN apk --no-cache --update add git make
+# workaround for https://github.com/golang/go/issues/21465
+RUN git config --global url."https://gitlab.com".insteadOf git://gitlab.com
 RUN make deps
 RUN make build
 
