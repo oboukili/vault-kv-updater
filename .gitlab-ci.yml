@@ -1,7 +1,6 @@
 ---
 stages:
   - build
-  - release
 
 build:
   stage: build
@@ -11,6 +10,7 @@ build:
   script:
     - >
       /kaniko/executor \
+        --build-arg GITLAB_CREDS="gitlab-ci-token:${CI_DEPLOY_TOKEN}"
         --single-snapshot \
         --context ${CI_PROJECT_DIR} \
         --cache true \
@@ -20,14 +20,3 @@ build:
         --destination eu.gcr.io/malt-build/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}
   tags:
     - kubernetes
-
-# release:
-#  script:
-#    - docker create ${CI_REGISTRY_URL}:${CI_COMMIT_SHORT_SHA}
-#    -
-#  artifacts:
-#    paths:
-#      - vault-kv-updater
-#    expire_in: 1 day
-#  tags:
-#    - kubernetes

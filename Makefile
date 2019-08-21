@@ -1,11 +1,4 @@
 deps:
-	go get \
-	  gitlab.com/maltcommunity/ops/vault-kv-updater.git/api \
-	  github.com/go-yaml/yaml \
-	  github.com/jeremywohl/flatten \
-	  go.mozilla.org/sops/decrypt \
-	  github.com/hashicorp/vault/api \
-	  golang.org/x/net/http2
-
+	go get -v -d
 build:
 	CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o vault-kv-updater
