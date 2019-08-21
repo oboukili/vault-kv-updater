@@ -11,7 +11,6 @@ build:
     - >
       /kaniko/executor \
         --build-arg GITLAB_CREDS="gitlab-ci-token:${CI_JOB_TOKEN}" \
-        --single-snapshot \
         --context ${CI_PROJECT_DIR} \
         --cache true \
         --cache-ttl 72h \
