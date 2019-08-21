@@ -1,7 +1,7 @@
 // sourced from https://github.com/sethvargo/vault-kubernetes-authenticator
 // Thanks Seth! :)
 
-package main
+package api
 
 import (
 	"bytes"

@@ -1,7 +1,6 @@
 package main
 
 import (
-	
 	"errors"
 	"fmt"
 	"gitlab.com/maltcommunity/ops/vault-kv-updater.git/api"
