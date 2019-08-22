@@ -32,14 +32,14 @@ var (
 )
 
 func AuthKubernetes() (token string, accessor string, err error) {
-	vaultAddr = os.Getenv("VAULT_ADDR")
+	vaultAddr = os.Getenv(EnvVaultAddr)
 	if vaultAddr == "" {
-		vaultAddr = "http://127.0.0.1:8200"
+		vaultAddr = vaultDefaultAddr
 	}
 
-	role := os.Getenv("VAULT_ROLE")
+	role := os.Getenv(EnvVaultAuthKubernetesRole)
 	if role == "" {
-		log.Fatal("missing VAULT_ROLE")
+		log.Fatalf("missing %s", EnvVaultAuthKubernetesRole)
 	}
 
 	vaultCaPem = os.Getenv("VAULT_CAPEM")
@@ -48,7 +48,7 @@ func AuthKubernetes() (token string, accessor string, err error) {
 	vaultNamespace = os.Getenv("VAULT_NAMESPACE")
 	vaultServerName = os.Getenv("VAULT_TLS_SERVER_NAME")
 
-	if s := os.Getenv("VAULT_SKIP_VERIFY"); s != "" {
+	if s := os.Getenv("VAULT_TLS_SKIP_VERIFY"); s != "" {
 		b, err := strconv.ParseBool(s)
 		if err != nil {
 			log.Fatal(err)

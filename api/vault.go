@@ -7,16 +7,15 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strings"
 )
-
-const vaultDefaultAddr = "http://127.0.0.1:8200"
 
 func VaultClientInit() (c *vault.Client, err error) {
 	var token string
 	var vaultAddress string
 
 	// initialize a new Vault client
-	vaultAddress, ok := os.LookupEnv("VAULT_ADDR")
+	vaultAddress, ok := os.LookupEnv(EnvVaultAddr)
 	if !ok {
 		vaultAddress = vaultDefaultAddr
 	}
@@ -30,7 +29,21 @@ func VaultClientInit() (c *vault.Client, err error) {
 
 	// TODO: implement a proper authentication method cli choice
 	// Use Kubernetes Vault authentication
-	token, _, err = AuthKubernetes()
+	authMethod, ok := os.LookupEnv(EnvVaultAuthMethod)
+	if !ok {
+		authMethod = vaultDefaultAuthenticationMethod
+	}
+
+	switch authMethod {
+	case "kubernetes":
+		log.Println("Kubernetes authentication method selected")
+		token, _, err = AuthKubernetes()
+	case "token":
+		log.Println("Token authentication method selected")
+		token, err = AuthToken()
+	default:
+		err = fmt.Errorf("%s is not supported as an authentication method, choose between kubernetes,token", authMethod)
+	}
 	if err != nil {
 		return
 	}
@@ -38,12 +51,46 @@ func VaultClientInit() (c *vault.Client, err error) {
 	return
 }
 
-func VaultKVIdempotentWrite(secret interface{}, path string, c *vault.Client) (err error) {
-	var inputSecret map[string]interface{}
-	vaultSecret, err := c.Logical().Read(path)
-	if err != nil {
-		return
+func VaultSecretDataIsDifferent(newData map[string]interface{}, vaultSecret *vault.Secret, kvVersion int) bool {
+	switch kvVersion {
+	case 1:
+		if vaultSecret != nil && reflect.DeepEqual(newData, vaultSecret.Data) {
+			return false
+		}
+	case 2:
+		if vaultSecret != nil {
+			_, exists := vaultSecret.Data["data"]
+			if exists && reflect.DeepEqual(newData, vaultSecret.Data["data"]) {
+				return false
+			}
+		}
 	}
+	return true
+}
+
+func VaultKVIdempotentWrite(secret interface{}, kvMount string, kvVersion int, kvPath string, c *vault.Client) (err error) {
+	var b strings.Builder
+	var inputSecret map[string]interface{}
+
+	b.WriteString(kvMount)
+	b.WriteString("/")
+
+	switch kvVersion {
+	case 1:
+		b.WriteString(kvPath)
+	case 2:
+		b.WriteString("data/")
+		b.WriteString(kvPath)
+	default:
+		return fmt.Errorf("ERROR: unsupported kv version: %d", kvVersion)
+	}
+	kvCompletePath := b.String()
+
+	vaultSecret, err := c.Logical().Read(kvCompletePath)
+	if err != nil {
+		return fmt.Errorf("could not read secret from path %s/%s: %s", kvMount, kvPath, err)
+	}
+
 	// TODO: ensure we are always passing a map[string]interface instead of testing
 	// Convert secret to a map[string]interface{} value
 	switch secret.(type) {
@@ -62,16 +109,23 @@ func VaultKVIdempotentWrite(secret interface{}, path string, c *vault.Client) (e
 	}
 
 	// Testing for both new secret and strict equality
-	if vaultSecret != nil && reflect.DeepEqual(inputSecret, vaultSecret.Data) {
-		log.Printf("Secret did not change, %s", path)
+	if !VaultSecretDataIsDifferent(inputSecret, vaultSecret, kvVersion) {
+		log.Printf("Secret did not change, %s/%s", kvMount, kvPath)
 		return
-
 	}
 
-	_, err = c.Logical().Write(path, inputSecret)
+	switch kvVersion {
+	case 1:
+		_, err = c.Logical().Write(kvCompletePath, inputSecret)
+	case 2:
+		_, err = c.Logical().Write(kvCompletePath, map[string]interface{}{
+			"data": inputSecret,
+		})
+	}
+
 	if err != nil {
-		return
+		return fmt.Errorf("could not write secret to path %s/%s: %s", kvMount, kvPath, err)
 	}
-	log.Printf("Successfully updated secret: %s", path)
+	log.Printf("Successfully updated secret: %s/%s", kvMount, kvPath)
 	return
 }

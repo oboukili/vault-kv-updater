@@ -26,20 +26,30 @@ Supported Vault authentication methods:
 
 ##### Simple mode (single secret)
 ```
-vault-kv-updater secret.yml
+VAULT_KV_MOUNT=kv VAULT_KV_PATH=path/to/secret vault-kv-updater secret.yml
 ```
 
 ```
+export VAULT_KV_MOUNT=kv
+export VAULT_KV_PATH=path/to/secret
+export VAULT_AUTH_METHOD=token
+export VAULT_TOKEN=mytoken
 cat secret.yml | vault-kv-updater
 ```
 
 ##### Autocomplete mode (multiple secrets)
 ```
-AUTO_COMPLETE=true AUTO_COMPLETE_VAULT_KV_MOUNT=kv vault-kv-updater some/folder
+export VAULT_KV_MOUNT=kv
+export AUTO_COMPLETE=true
+export VAULT_AUTH_K8S_ROLE=auth-role
+vault-kv-updater some/directory other/directory
 ```
 
 ```
-AUTO_COMPLETE=true AUTO_COMPLETE_VAULT_KV_MOUNT=kv AUTO_COMPLETE_FILE_PREFIX="application-" vault-kv-updater some/folder
+export VAULT_KV_MOUNT=kv
+export AUTO_COMPLETE=true
+export AUTO_COMPLETE_FILE_PREFIX="application-"
+vault-kv-updater some/directory other/directory
 ```
 
 
@@ -57,8 +67,11 @@ Supported file extensions are `.yml` and `.yaml`
 |Variable|Optional|Description|defaults|
 |---|---|---|---|
 |VAULT_ADDR|yes|Vault endpoint address, including scheme and port|"http://127.0.0.1:8200"|
-|VAULT_KV_PATH|**no**|Secret path, including kv mount||
-|VAULT_ROLE|**no**|Vault role to authenticate against||
+|VAULT_AUTH_METHOD|yes|Vault authentication method (supported methods: token, kubernetes)|kubernetes|
+|VAULT_AUTH_K8S_ROLE|**no** (when using kubernetes auth)|Vault role to authenticate against||
+|VAULT_TOKEN|**no** (when using token auth)||||
+|VAULT_KV_PATH|**no** (when not using autocomplete mode)|Secret path, not including kv mount||
+|VAULT_KV_MOUNT|**no**|Vault KV mount to synchronize secrets to||
 |VAULT_CAPEM|yes|Vault CA certificate in PEM format||
 |VAULT_CACERT|yes|Path to the vault CA file||
 |VAULT_NAMESPACE|yes|Vault namespace (enterprise feature)||
@@ -68,7 +81,6 @@ Supported file extensions are `.yml` and `.yaml`
 |SERVICE_ACCOUNT_PATH|yes|Path to the Kubernetes serviceaccount token file|"/var/run/secrets/kubernetes.io/serviceaccount/token"|
 |AUTO_COMPLETE|yes|Activates autocomplete mode|false|
 |AUTO_COMPLETE_FILE_PREFIX|yes|Removes the prefix from the filename before determining the associated Vault secret's KV path||
-|AUTO_COMPLETE_VAULT_KV_MOUNT|yes (autocomplete:**no**)|Vault KV mount to synchronize secrets to||
 |AUTO_COMPLETE_VAULT_KV_PATH_PREFIX|yes|Appends a base KV path, i.e. kv/mybasekvpath/secretname||
 
 ---

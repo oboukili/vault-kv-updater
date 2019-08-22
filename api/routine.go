@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-func Routine(i interface{}, kvPath string, c *vault.Client) (err error) {
+func Routine(i interface{}, kvMount string, kvVersion int, kvPath string, c *vault.Client) (err error) {
 	ok, err, input := isSopsEncrypted(i)
 	if err != nil {
 		return
@@ -47,7 +47,7 @@ func Routine(i interface{}, kvPath string, c *vault.Client) (err error) {
 	if err != nil {
 		return err
 	} else {
-		err = VaultKVIdempotentWrite(flattened, kvPath, c)
+		err = VaultKVIdempotentWrite(flattened, kvMount, kvVersion, kvPath, c)
 		if err != nil {
 			log.Fatalln(err)
 		}

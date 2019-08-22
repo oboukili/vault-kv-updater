@@ -22,14 +22,14 @@ func isSopsEncrypted(i interface{}) (ok bool, err error, p *[]byte) {
 		input, err = ioutil.ReadAll(i.(*os.File))
 	}
 	if err != nil {
-		err = fmt.Errorf("isSopsEncrypted; %s", err)
+		err = fmt.Errorf("ERROR: isSopsEncrypted: %s", err)
 		return
 	}
 
 	var contents map[interface{}]interface{}
 	err = yaml.Unmarshal(input, &contents)
 	if err != nil {
-		err = fmt.Errorf("isSopsEncrypted; %s", err)
+		err = fmt.Errorf("ERROR: isSopsEncrypted: %s", err)
 		return
 	}
 
