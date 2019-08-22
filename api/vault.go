@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	
 )
 
 func VaultClientInit() (c *vault.Client, err error) {
@@ -27,8 +28,6 @@ func VaultClientInit() (c *vault.Client, err error) {
 		return
 	}
 
-	// TODO: implement a proper authentication method cli choice
-	// Use Kubernetes Vault authentication
 	authMethod, ok := os.LookupEnv(EnvVaultAuthMethod)
 	if !ok {
 		authMethod = vaultDefaultAuthenticationMethod
@@ -48,6 +47,7 @@ func VaultClientInit() (c *vault.Client, err error) {
 		return
 	}
 	c.SetToken(token)
+	c.SetLimiter(10.0, 30)
 	return
 }
 

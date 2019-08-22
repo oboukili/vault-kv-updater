@@ -14,12 +14,14 @@ Supported Vault authentication methods:
 
 #### Roadmap
 
+* ~~Support for simple Vault token authentication mode.~~
+* ~~Support for multiple files~~
 * Opt-out flattening flag.
 * Opt-out sops features flag.
-* Support for simple Vault token authentication mode.
 * Support for more flattening modes.
 * Providing a useful CLI help.
-* Support for multiple files/streams (go routines) + Vault API rate limiting.
+* Parallel execution (go routines)
+* ~~Vault API rate limiting.~~
 * Less hacky yaml marshalling using https://github.com/ghodss/yaml.
 
 #### Usage
