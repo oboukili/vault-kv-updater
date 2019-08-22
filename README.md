@@ -8,7 +8,8 @@ Write operations on secrets are **idempotent**, they will not update secrets if 
 Pretty useful when used in conjunction with [Spring Cloud Vault](https://github.com/spring-cloud/spring-cloud-vault).
 
 Supported Vault authentication methods:
-- kubernetes
+- kubernetes (default)
+- token
 
 ---
 
@@ -70,6 +71,7 @@ Supported file extensions are `.yml` and `.yaml`
 |---|---|---|---|
 |VAULT_ADDR|yes|Vault endpoint address, including scheme and port|"http://127.0.0.1:8200"|
 |VAULT_AUTH_METHOD|yes|Vault authentication method (supported methods: token, kubernetes)|kubernetes|
+|VAULT_AUTH_K8S_MOUNT_PATH|yes|Authentication backend mount path|"kubernetes"|
 |VAULT_AUTH_K8S_ROLE|**no** (when using kubernetes auth)|Vault role to authenticate against||
 |VAULT_TOKEN|**no** (when using token auth)||||
 |VAULT_KV_PATH|**no** (when not using autocomplete mode)|Secret path, not including kv mount||
@@ -78,8 +80,7 @@ Supported file extensions are `.yml` and `.yaml`
 |VAULT_CACERT|yes|Path to the vault CA file||
 |VAULT_NAMESPACE|yes|Vault namespace (enterprise feature)||
 |VAULT_TLS_SERVER_NAME|yes|Vault server hostname to verify against||
-|VAULT_SKIP_VERIFY|yes|Whether to skip TLS verification|false|
-|VAULT_K8S_MOUNT_PATH|yes|Authentication backend mount path|"kubernetes"|
+|VAULT_TLS_SKIP_VERIFY|yes|Whether to skip TLS verification|false|
 |SERVICE_ACCOUNT_PATH|yes|Path to the Kubernetes serviceaccount token file|"/var/run/secrets/kubernetes.io/serviceaccount/token"|
 |AUTO_COMPLETE|yes|Activates autocomplete mode|false|
 |AUTO_COMPLETE_FILE_PREFIX|yes|Removes the prefix from the filename before determining the associated Vault secret's KV path||

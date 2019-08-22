@@ -48,7 +48,7 @@ func AuthKubernetes() (token string, accessor string, err error) {
 	vaultNamespace = os.Getenv("VAULT_NAMESPACE")
 	vaultServerName = os.Getenv("VAULT_TLS_SERVER_NAME")
 
-	if s := os.Getenv("VAULT_TLS_SKIP_VERIFY"); s != "" {
+	if s := os.Getenv(EnvVaultTlsSkipVerify); s != "" {
 		b, err := strconv.ParseBool(s)
 		if err != nil {
 			log.Fatal(err)
@@ -56,7 +56,7 @@ func AuthKubernetes() (token string, accessor string, err error) {
 		vaultSkipVerify = b
 	}
 
-	vaultK8SMountPath = os.Getenv("VAULT_K8S_MOUNT_PATH")
+	vaultK8SMountPath = os.Getenv(EnvVaultAuthKubernetesMountPath)
 	if vaultK8SMountPath == "" {
 		vaultK8SMountPath = "kubernetes"
 	}

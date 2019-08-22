@@ -8,7 +8,6 @@ import (
 	"os"
 	"reflect"
 	"strings"
-	
 )
 
 func VaultClientInit() (c *vault.Client, err error) {

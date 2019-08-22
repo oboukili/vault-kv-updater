@@ -11,6 +11,8 @@ const (
 	EnvVaultToken                    = "VAULT_TOKEN"
 	EnvVaultAuthMethod               = "VAULT_AUTH_METHOD"
 	EnvVaultAuthKubernetesRole       = "VAULT_AUTH_K8S_ROLE"
+	EnvVaultAuthKubernetesMountPath  = "VAULT_AUTH_K8S_MOUNT_PATH"
+	EnvVaultTlsSkipVerify            = "VAULT_TLS_SKIP_VERIFY"
 	vaultDefaultAddr                 = "http://127.0.0.1:8200"
 	vaultDefaultAuthenticationMethod = "kubernetes"
 )
