@@ -25,6 +25,10 @@ Supported Vault authentication methods:
 * ~~Vault API rate limiting.~~
 * Less hacky yaml marshalling using https://github.com/ghodss/yaml.
 
+#### Known issues
+
+* On scratch-based container images, not providing absolute file/directory paths cause a nil pointer exception.
+
 #### Usage
 
 ##### Simple mode (single secret)
@@ -73,11 +77,12 @@ Supported file extensions are `.yml` and `.yaml`
 |VAULT_AUTH_METHOD|yes|Vault authentication method (supported methods: token, kubernetes)|kubernetes|
 |VAULT_AUTH_K8S_MOUNT_PATH|yes|Authentication backend mount path|"kubernetes"|
 |VAULT_AUTH_K8S_ROLE|**no** (when using kubernetes auth)|Vault role to authenticate against||
-|VAULT_TOKEN|**no** (when using token auth)||||
+|VAULT_TOKEN|**no** (when using token auth)|||
 |VAULT_KV_PATH|**no** (when not using autocomplete mode)|Secret path, not including kv mount||
 |VAULT_KV_MOUNT|**no**|Vault KV mount to synchronize secrets to||
 |VAULT_CAPEM|yes|Vault CA certificate in PEM format||
 |VAULT_CACERT|yes|Path to the vault CA file||
+|VAULT_CAPATH|yes|Path to a directory of CA files (non-recursive) to use for TLS verification||
 |VAULT_NAMESPACE|yes|Vault namespace (enterprise feature)||
 |VAULT_TLS_SERVER_NAME|yes|Vault server hostname to verify against||
 |VAULT_TLS_SKIP_VERIFY|yes|Whether to skip TLS verification|false|
