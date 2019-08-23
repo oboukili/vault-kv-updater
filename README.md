@@ -88,6 +88,7 @@ Supported file extensions are `.yml` and `.yaml`
 |AUTO_COMPLETE|yes|Activates autocomplete mode|false|
 |AUTO_COMPLETE_FILE_PREFIX|yes|Removes the prefix from the filename before determining the associated Vault secret's KV path||
 |AUTO_COMPLETE_VAULT_KV_PATH_PREFIX|yes|Appends a base KV path, i.e. kv/mybasekvpath/secretname||
+|AUTO_COMPLETE_ADDITIONAL_SUFFIX_FILTERS|yes|Comma separated list of additional suffixes to filter out of KV secret name (i.e. with `.enc.yml`: `secretname.enc.yml` -> `secretname`)  (note:, filter order takes precedence, `.yml`, and `.yaml` will *always* be included last) |
 |FLATTEN|yes|Whether to "dot flatten" the secret data structure (Useful for Spring Cloud Vault consumption)|true|
 
 ---

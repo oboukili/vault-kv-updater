@@ -17,31 +17,54 @@ type ExtendedFileInfo struct {
 }
 
 func GetVaultKVPath(e *ExtendedFileInfo) (path string, err error) {
-	var r string
+	var result string
+	var suffixReplacers []string
 	var b strings.Builder
-
-	filePrefix, ok := os.LookupEnv(EnvAutoCompleteFilePrefix)
-	if !ok {
-		filePrefix = ""
-	}
 
 	kvPathPrefix, ok := os.LookupEnv(EnvAutoCompleteVaultKVPathPrefix)
 	if ok && kvPathPrefix != "" {
 		b.WriteString(kvPathPrefix)
 		b.WriteString("/")
 	}
-	if !strings.EqualFold(filePrefix, "") && strings.HasPrefix((*e).Name(), filePrefix) {
-		r = strings.Replace(e.Name(), filePrefix, "", 1)
-	} else {
-		r = e.Name()
+
+	filePrefix, ok := os.LookupEnv(EnvAutoCompleteFilePrefix)
+	if !ok {
+		filePrefix = ""
 	}
 
-	for _, suffixExpression := range validFileExtensions {
-		if strings.HasSuffix(r, suffixExpression) {
-			r = strings.Replace(r, suffixExpression, "", 1)
+	// Append additional suffix replacers first
+	additionalSuffixFiltersString, ok := os.LookupEnv(EnvAutoCompleteAdditionalSuffixFilters)
+	if ok {
+		additionalSuffixFiltersString = TrimQuotes(additionalSuffixFiltersString)
+		additionalSuffixFilters := strings.Split(additionalSuffixFiltersString, ",")
+		for _, a := range additionalSuffixFilters {
+			if a != "" {
+				suffixReplacers = append(suffixReplacers, a)
+			}
 		}
 	}
-	_, err = b.WriteString(r)
+	// Append default file extensions suffix last
+	for _, s := range validFileExtensions {
+		suffixReplacers = append(suffixReplacers, s)
+	}
+
+	// Prefix replacement
+	if !strings.EqualFold(filePrefix, "") && strings.HasPrefix((*e).Name(), filePrefix) {
+		result = strings.Replace(e.Name(), filePrefix, "", 1)
+	} else {
+		result = e.Name()
+	}
+
+	// Suffix replacements
+	for _, suffixExpression := range suffixReplacers {
+		if strings.HasSuffix(result, suffixExpression) {
+			result = strings.Replace(result, suffixExpression, "", 1)
+			// Do not apply more than one suffix replacement
+			break
+		}
+	}
+
+	_, err = b.WriteString(result)
 	if err != nil {
 		return
 	}

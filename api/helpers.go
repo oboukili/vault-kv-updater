@@ -38,3 +38,16 @@ func Flatten(data string) (flattened string, err error) {
 	}
 	return
 }
+
+func TrimQuotes(s string) (r string) {
+	r = s
+	if len(s) > 2 {
+		if s[0] == '"' {
+			r = s[1:]
+		}
+		if s[len(s)-1] == '"' {
+			r = r[0:len(r)-2]
+		}
+	}
+	return
+}
