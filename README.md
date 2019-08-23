@@ -15,19 +15,17 @@ Supported Vault authentication methods:
 
 #### Roadmap
 
+* Unit tests (yeah I know..)
+* Integration tests with testcontainers SDK
 * ~~Support for simple Vault token authentication mode.~~
 * ~~Support for multiple files~~
 * Opt-out flattening flag.
 * Opt-out sops features flag.
 * Support for more flattening modes.
 * Providing a useful CLI help.
-* Parallel execution (go routines)
+* Parallel execution? (go routines)
 * ~~Vault API rate limiting.~~
 * Less hacky yaml marshalling using https://github.com/ghodss/yaml.
-
-#### Known issues
-
-* On scratch-based container images, not providing absolute file/directory paths cause a nil pointer exception.
 
 #### Usage
 

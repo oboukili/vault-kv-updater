@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"sort"
 	"strings"
 )
 
@@ -56,7 +55,7 @@ func AutoCompleteGetFiles(directories []string) (*[]ExtendedFileInfo, error) {
 		return nil, err
 	}
 
-	results := make([]ExtendedFileInfo, len(directories)-1)
+	results := make([]ExtendedFileInfo, 0)
 
 	for _, d := range directories {
 		di, err := os.Stat(d)
@@ -78,10 +77,10 @@ func AutoCompleteGetFiles(directories []string) (*[]ExtendedFileInfo, error) {
 		}
 		var b strings.Builder
 		for _, f := range files {
+			if f.IsDir() {
+				continue
+			}
 			for _, s := range validFileExtensions {
-				if f.IsDir() {
-					continue
-				}
 				if strings.HasSuffix(f.Name(), s) {
 					b.WriteString(d)
 					b.WriteString("/")
@@ -99,9 +98,9 @@ func AutoCompleteGetFiles(directories []string) (*[]ExtendedFileInfo, error) {
 	if len(results) == 0 {
 		return nil, fmt.Errorf("ERROR: no file was detected to be processed during autocomplete mode")
 	}
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].FilePath > results[j].FilePath
-	})
+	//sort.Slice(results, func(i, j int) bool {
+	//	return results[i].FilePath > results[j].FilePath
+	//})
 	for i, _ := range results {
 		path, err := GetVaultKVPath(&results[i])
 		if err != nil {
