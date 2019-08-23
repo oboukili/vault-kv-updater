@@ -1,7 +1,7 @@
 # Vault KV updater
 
 
-Simple, no-dependency golang application that flattens and synchronizes a YAML formatted structure from an optionally [SOPS](https://github.com/mozilla/sops) encrypted stream (file or standard input), to a Vault KV secret.
+Simple, no-dependency golang application that optionally flattens and synchronizes a YAML formatted structure from an optionally [SOPS](https://github.com/mozilla/sops) encrypted stream (file or standard input), to a Vault KV secret.
 
 Write operations on secrets are **idempotent**, they will not update secrets if no changes have been detected.
 
@@ -15,11 +15,11 @@ Supported Vault authentication methods:
 
 #### Roadmap
 
-* Unit tests (yeah I know..)
-* Integration tests with testcontainers SDK
+* Unit tests (yeah I know..).
+* Integration tests with testcontainers SDK.
 * ~~Support for simple Vault token authentication mode.~~
-* ~~Support for multiple files~~
-* Opt-out flattening flag.
+* ~~Support for multiple files.~~
+* ~~Opt-out flattening flag.~~
 * Opt-out sops features flag.
 * Support for more flattening modes.
 * Providing a useful CLI help.
@@ -31,7 +31,7 @@ Supported Vault authentication methods:
 
 ##### Simple mode (single secret)
 ```
-VAULT_KV_MOUNT=kv VAULT_KV_PATH=path/to/secret vault-kv-updater secret.yml
+FLATTEN=false VAULT_KV_MOUNT=kv VAULT_KV_PATH=path/to/secret vault-kv-updater secret.yml
 ```
 
 ```
@@ -88,6 +88,7 @@ Supported file extensions are `.yml` and `.yaml`
 |AUTO_COMPLETE|yes|Activates autocomplete mode|false|
 |AUTO_COMPLETE_FILE_PREFIX|yes|Removes the prefix from the filename before determining the associated Vault secret's KV path||
 |AUTO_COMPLETE_VAULT_KV_PATH_PREFIX|yes|Appends a base KV path, i.e. kv/mybasekvpath/secretname||
+|FLATTEN|yes|Whether to "dot flatten" the secret data structure (Useful for Spring Cloud Vault consumption)|true|
 
 ---
 

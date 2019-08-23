@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/go-yaml/yaml"
 	vault "github.com/hashicorp/vault/api"
-	"github.com/jeremywohl/flatten"
 	"log"
 )
 
@@ -37,20 +36,19 @@ func Routine(i interface{}, kvMount string, kvVersion int, kvPath string, c *vau
 	}
 
 	// TODO: introduce a boolean for unicode characters json escaping opt-out
-	unescapedContent, err := unescapeUnicodeCharactersInJSON(content)
+	unescapedContent, err := UnescapeUnicodeCharactersInJSON(content)
 	if err != nil {
 		return
 	}
 
-	// TODO: introduce a boolean for flattening opt-in
-	flattened, err := flatten.FlattenString(string(unescapedContent), "", flatten.DotStyle)
+	flattened, err := Flatten(string(unescapedContent))
 	if err != nil {
 		return err
-	} else {
-		err = VaultKVIdempotentWrite(flattened, kvMount, kvVersion, kvPath, c)
-		if err != nil {
-			log.Fatalln(err)
-		}
+	}
+
+	err = VaultKVIdempotentWrite(flattened, kvMount, kvVersion, kvPath, c)
+	if err != nil {
+		log.Fatalln(err)
 	}
 	return
 }
