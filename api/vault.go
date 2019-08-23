@@ -50,21 +50,57 @@ func VaultClientInit() (c *vault.Client, err error) {
 	return
 }
 
-func VaultSecretDataIsDifferent(newData map[string]interface{}, vaultSecret *vault.Secret, kvVersion int) bool {
+func VaultSecretDataIsDifferent(newData map[string]interface{}, vaultSecret *vault.Secret, kvVersion int) (b bool, err error) {
+	if vaultSecret == nil {
+		return true, nil
+	}
+
+	// Use the same Json Marshaller instead of the Vault API Marshaller (integers are not of the same types)
+	var vaultSecretDataBytes []byte
+	var decodedVaultSecret interface{}
+
 	switch kvVersion {
 	case 1:
-		if vaultSecret != nil && reflect.DeepEqual(newData, vaultSecret.Data) {
-			return false
+		vaultSecretDataBytes, err = json.Marshal(vaultSecret.Data)
+		if err != nil {
+			return false, err
+		}
+		err = json.Unmarshal(vaultSecretDataBytes, &decodedVaultSecret)
+		if err != nil {
+			return
+		}
+		switch decodedVaultSecret {
+		case nil:
+		default:
+			if !reflect.DeepEqual(newData, decodedVaultSecret) {
+				b = true
+			}
 		}
 	case 2:
-		if vaultSecret != nil {
-			_, exists := vaultSecret.Data["data"]
-			if exists && reflect.DeepEqual(newData, vaultSecret.Data["data"]) {
-				return false
+		_, exists := vaultSecret.Data["data"]
+		switch exists {
+		case true:
+			vaultSecretDataBytes, err = json.Marshal(vaultSecret.Data["data"])
+			if err != nil {
+				return false, err
+			}
+		case false:
+			return true, nil
+		}
+		err = json.Unmarshal(vaultSecretDataBytes, &decodedVaultSecret)
+		if err != nil {
+			return
+		}
+		switch decodedVaultSecret {
+		case nil:
+		default:
+			m := decodedVaultSecret.(map[string]interface{})
+			if !reflect.DeepEqual(newData, m) {
+				b = true
 			}
 		}
 	}
-	return true
+	return
 }
 
 func VaultKVIdempotentWrite(secret interface{}, kvMount string, kvVersion int, kvPath string, c *vault.Client) (err error) {
@@ -108,7 +144,12 @@ func VaultKVIdempotentWrite(secret interface{}, kvMount string, kvVersion int, k
 	}
 
 	// Testing for both new secret and strict equality
-	if !VaultSecretDataIsDifferent(inputSecret, vaultSecret, kvVersion) {
+	ok, err := VaultSecretDataIsDifferent(inputSecret, vaultSecret, kvVersion)
+	if err != nil {
+		return
+	}
+
+	if !ok {
 		log.Printf("Secret did not change, %s/%s", kvMount, kvPath)
 		return
 	}

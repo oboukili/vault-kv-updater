@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"github.com/go-yaml/yaml"
 	vault "github.com/hashicorp/vault/api"
 	"log"
@@ -24,24 +23,9 @@ func Routine(i interface{}, kvMount string, kvVersion int, kvPath string, c *vau
 		return err
 	}
 
-	// decode yaml contents to map[string]interface{} instance
-	decodedContents, err := decode(contents)
-	if err != nil {
-		return
-	}
-
-	content, err := json.Marshal(decodedContents)
-	if err != nil {
-		return
-	}
-
-	// TODO: introduce a boolean for unicode characters json escaping opt-out
-	unescapedContent, err := UnescapeUnicodeCharactersInJSON(content)
-	if err != nil {
-		return
-	}
-
-	flattened, err := Flatten(string(unescapedContent))
+	// Convert contents to a manipulable map type
+	convertedContents := Mapper(contents)
+	flattened, err := FlattenMap(convertedContents.(map[string]interface{}))
 	if err != nil {
 		return err
 	}
