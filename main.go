@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"gitlab.com/maltcommunity/public/vault-kv-updater.git/api"
+	"github.com/oboukili/vault-kv-updater/api"
 	"log"
 	"os"
 	"strconv"
